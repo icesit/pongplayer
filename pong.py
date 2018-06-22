@@ -212,13 +212,14 @@ class pong_srv(zmq_comm_svr_c):
         self.running = False
 
     def reset(self, param):
-        '''
+        
         global score1, score2
         score1 = 0
         score2 = 0
+        '''
         spawn_ball(0) #int(random.random()*2)
         '''
-        new_game()
+        #new_game()
         res = ''
         return res
 

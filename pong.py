@@ -28,7 +28,7 @@ def spawn_ball(direction):
     global ball_pos, ball_vel # these are vectors stored as lists
     ball_pos[0] = WIDTH / 2
     ball_pos[1] = HEIGHT / 2
-    if direction == "RIGHT":
+    if direction == "RIGHT" or direction==1:
         ball_vel[0] = (2 * random.random() + 2)*SIMRATE
         ball_vel[1] = (random.random()-0.5) * 8 *SIMRATE
     else:
@@ -39,7 +39,7 @@ def spawn_ball(direction):
 def new_game():
     global paddle1_pos, paddle2_pos, paddle1_vel, paddle2_vel  # these are numbers
     global score1, score2  # these are ints
-    spawn_ball(1)
+    spawn_ball(int(random.random()*2))
     score1 = 0
     score2 = 0
     paddle1_pos = [[0, (HEIGHT-PAD_HEIGHT)/2], [PAD_WIDTH, (HEIGHT-PAD_HEIGHT)/2], [PAD_WIDTH, HEIGHT-(HEIGHT-PAD_HEIGHT)/2], [0, HEIGHT-(HEIGHT-PAD_HEIGHT)/2]]
@@ -180,29 +180,47 @@ class pong_srv(zmq_comm_svr_c):
         return list(res.values())[0] if len(res)==1 else res
 
     def execute(self,param=None):
-        global paddle2_vel
+        global paddle2_vel, paddle1_vel
         if(param==None): 
             return ''
-        elif('com' in param):
-            if(param['com'] == 'up'):
-                paddle2_vel = -4 *SIMRATE
-            elif(param['com'] == 'down'):
-                paddle2_vel = 4 *SIMRATE
-            elif(param['com'] == 'hold'):
-                paddle2_vel = 0
-        elif('ai' in param):
-            if(param['ai'] == 'up'):
-                paddle1_vel = -4 *SIMRATE
-            elif(param['ai'] == 'down'):
-                paddle1_vel = 4 *SIMRATE
-            elif(param['ai'] == 'hold'):
-                paddle1_vel = 0
+        else:
+            if('com' in param):
+                if(param['com'] == 'up'):
+                    paddle2_vel = -4 *SIMRATE
+                elif(param['com'] == 'down'):
+                    paddle2_vel = 4 *SIMRATE
+                elif(param['com'] == 'hold'):
+                    paddle2_vel = 0
+            if('ai' in param):
+                '''
+                print(param['ai'])
+                print(param['ai']=='up')
+                print(param['ai']=='down')
+                print(param['ai']=='hold')
+                '''
+                if(param['ai'] == 'up'):
+                    paddle1_vel = -4 *SIMRATE
+                elif(param['ai'] == 'down'):
+                    paddle1_vel = 4 *SIMRATE
+                elif(param['ai'] == 'hold'):
+                    paddle1_vel = 0
 
         return ''
 
     def shutdown(self):
         print('shutdown')
         self.running = False
+
+    def reset(self, param):
+        '''
+        global score1, score2
+        score1 = 0
+        score2 = 0
+        spawn_ball(0) #int(random.random()*2)
+        '''
+        new_game()
+        res = ''
+        return res
 
 # create frame
 frame = simplegui.create_frame("Pong", WIDTH, HEIGHT)

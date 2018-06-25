@@ -180,7 +180,7 @@ def print_val_dict(d,fmt='%.2f'):
     for k,v in d.items(): print(fmt%(k,v))
     print('')
 
-
+'''
 ## matplotlib的汉字显示
 from matplotlib.font_manager import FontProperties
 import matplotlib.pyplot as plt
@@ -237,3 +237,4 @@ def create_gif(frames,fname,duration=0.1):
 if __name__ == '__main__':  
     create_gif_from_flist(['./image/1.jpeg','./image/2.jpeg','./image/3.jpeg','./image/4.jpeg'], 'test.gif')  
     
+'''

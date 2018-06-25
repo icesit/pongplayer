@@ -1,7 +1,7 @@
 import sys
 import time
 from zmq_comm import *
-from evdev import InputDevice
+#from evdev import InputDevice
 from select import select
 
 WIDTH = 600

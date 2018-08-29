@@ -216,8 +216,9 @@ class pong_srv(zmq_comm_svr_c):
         global score1, score2
         score1 = 0
         score2 = 0
+        
+        spawn_ball(1) #int(random.random()*2)
         '''
-        spawn_ball(0) #int(random.random()*2)
         '''
         #new_game()
         res = ''

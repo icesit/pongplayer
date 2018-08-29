@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import random
-import gym
+#import gym
 import time
 import numpy as np
 from zmq_comm import *

@@ -51,22 +51,22 @@ class DQNAgent:
         return np.argmax(act_values[0])  # returns action
 
     def replay(self, batch_size):
-        for i in range(30):
-            minibatch = random.sample(self.memory, batch_size)
-            for state, action, reward, next_state, done in minibatch:
-                if(done):
-                    target = reward
-                else:
-                    target = (reward + self.gamma *
-                              np.amax(self.model.predict(next_state)[0]))
-                #print('target')
-                target_f = self.model.predict(state)
-                #print(target_f,action)
-                target_f[0][action] = target
-                #print(target_f)
-                history = self.model.fit(state, target_f, epochs=1, verbose=0)
-            if self.epsilon > self.epsilon_min:
-                self.epsilon -= self.epsilon_decay
+        #for i in range(30):
+        minibatch = random.sample(self.memory, batch_size)
+        for state, action, reward, next_state, done in minibatch:
+            if(done):
+                target = reward
+            else:
+                target = (reward + self.gamma *
+                          np.amax(self.model.predict(next_state)[0]))
+            #print('target')
+            target_f = self.model.predict(state)
+            #print(target_f,action)
+            target_f[0][action] = target
+            #print(target_f)
+            history = self.model.fit(state, target_f, epochs=1, verbose=0)
+        if self.epsilon > self.epsilon_min:
+            self.epsilon -= self.epsilon_decay
 
         return history
 
@@ -119,12 +119,12 @@ def train():
                 print("episode: {}/{}, time: {}, score: {:2}, epsilon: {:.4}"
                       .format(e, EPISODES, tt, reward, agent.epsilon))
                 avescore += reward/10
-                if len(agent.memory) > batch_size:
-                    history = agent.replay(batch_size)
+                
                 if(not history == None):
                     print('training loss=%f'%history.history['loss'][0])
                 break
-            
+            if len(agent.memory) > batch_size:
+                    history = agent.replay(batch_size)
 
         if e % 10 == 0:
             print('past 10 episode average score is {:3}'.format(avescore))

@@ -22,7 +22,7 @@ class DQNAgent:
         self.memory = deque(maxlen=10000)
         self.gamma = 0.95    # discount rate
         if(TRAIN_MODEL):
-            self.epsilon = 0.99  # exploration rate
+            self.epsilon = 0.7  # exploration rate
         else:
             self.epsilon = 0
         self.epsilon_min = 0.01

@@ -5,6 +5,7 @@ import random
 from zmq_comm import *
 
 # initialize globals - pos and vel encode vertical info for paddles
+START_FLAG = False
 SIMRATE = 1
 WIDTH = 600
 HEIGHT = 400       
@@ -39,15 +40,30 @@ def spawn_ball(direction):
 def new_game():
     global paddle1_pos, paddle2_pos, paddle1_vel, paddle2_vel  # these are numbers
     global score1, score2  # these are ints
+    global lastscore1, lastscore2
     spawn_ball(int(random.random()*2))
     score1 = 0
     score2 = 0
+    lastscore1 = 0
+    lastscore2 = 0
     paddle1_pos = [[0, (HEIGHT-PAD_HEIGHT)/2], [PAD_WIDTH, (HEIGHT-PAD_HEIGHT)/2], [PAD_WIDTH, HEIGHT-(HEIGHT-PAD_HEIGHT)/2], [0, HEIGHT-(HEIGHT-PAD_HEIGHT)/2]]
     paddle2_pos = [[WIDTH-PAD_WIDTH, (HEIGHT-PAD_HEIGHT)/2], [WIDTH, (HEIGHT-PAD_HEIGHT)/2], [WIDTH, HEIGHT-(HEIGHT-PAD_HEIGHT)/2], [WIDTH-PAD_WIDTH, HEIGHT-(HEIGHT-PAD_HEIGHT)/2]]
     
 def draw(canvas):
     global score1, score2, paddle1_pos, paddle2_pos, ball_pos, ball_vel
-    global paddle1_vel, paddle2_vel, ball_rot     
+    global paddle1_vel, paddle2_vel, ball_rot 
+    global lastscore1, lastscore2, START_FLAG 
+
+    #these lines are for training___>
+    if(score1 > lastscore1 or score2 > lastscore2):
+        START_FLAG = False
+    lastscore2 = score2
+    lastscore1 = score1
+
+    while(not START_FLAG):
+        time.sleep(0.1)
+    #till here____>
+    
     # draw mid line and gutters
     canvas.draw_line([WIDTH / 2, 0],[WIDTH / 2, HEIGHT], 1, "White")
     canvas.draw_line([PAD_WIDTH, 0],[PAD_WIDTH, HEIGHT], 1, "White")
@@ -116,7 +132,7 @@ def draw(canvas):
             ball_vel[1] += paddle1_vel*0.2
         else:
             score2 += 1
-            spawn_ball('RIGHT')
+            #spawn_ball('RIGHT')
     # right bound
     if ball_pos[0] + BALL_RADIUS + PAD_WIDTH >= WIDTH:
         if ball_pos[1]<=paddle2_pos[2][1] and ball_pos[1]>=paddle2_pos[0][1]:
@@ -125,10 +141,12 @@ def draw(canvas):
             ball_vel[1] += paddle2_vel*0.2
         else:
             score1 += 1
-            spawn_ball('LEFT')    
+            #spawn_ball('LEFT')    
     # draw scores
     canvas.draw_text("Player 1 scores: " + str(score1), [100, 20], 20, "green")
     canvas.draw_text("Player 2 scores: " + str(score2), [400, 20], 20, "green")
+    
+
 def keydown(key):
     global paddle1_vel, paddle2_vel
     current_key = chr(key)
@@ -214,9 +232,10 @@ class pong_srv(zmq_comm_svr_c):
     def reset(self, param):
         
         global score1, score2
+        global lastscore1, lastscore2, START_FLAG
         score1 = 0
         score2 = 0
-        
+        START_FLAG = True
         spawn_ball(1) #int(random.random()*2)
         '''
         '''

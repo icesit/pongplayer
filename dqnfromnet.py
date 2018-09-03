@@ -11,7 +11,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 
 EPISODES = 10000
-TRAIN_MODEL = True
+TRAIN_MODEL = False
 
 actionlist = ['hold', 'up', 'down']
 
@@ -22,9 +22,9 @@ class DQNAgent:
         self.memory = deque(maxlen=10000)
         self.gamma = 0.95    # discount rate
         if(TRAIN_MODEL):
-            self.epsilon = 0.7  # exploration rate
+            self.epsilon = 0.9  # exploration rate
         else:
-            self.epsilon = 0
+            self.epsilon = 1.0
         self.epsilon_min = 0.01
         self.epsilon_decay = 0.1 / EPISODES
         self.learning_rate = 0.001
@@ -48,6 +48,8 @@ class DQNAgent:
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
         act_values = self.model.predict(state)
+        #print(act_values)
+        #print(actionlist[np.argmax(act_values[0])])
         return np.argmax(act_values[0])  # returns action
 
     def replay(self, batch_size):
@@ -103,15 +105,23 @@ def train():
         state,score = nextstate(pongcli)
         #lastscore = [score[0],score[1]]
         done = False
+        lastbalvel = 0
         #print(state,type(state),state.shape)
         for tt in range(500):
             action = agent.act(state)
             pongcli.execute({'ai':actionlist[action]})
             time.sleep(0.05)
             next_state,score = nextstate(pongcli)
-            reward = float(tt)/10 + (score[0])*10 - (score[1])*10
-            if(score[0] > 0 or score[1]>0):
+            #reward = float(tt)/10 + (score[0])*10 - (score[1])*10
+            if(score[1]>0):
                 done = True
+                reward = -10
+            elif(lastbalvel<0 and next_state[0][0]>0):
+                reward = 10
+                done = True
+            else:
+                reward = 0
+            lastbalvel = next_state[0][0]
             agent.remember(state, action, reward, next_state, done)
             state = next_state
             #lastscore = [score[0],score[1]]
@@ -119,6 +129,7 @@ def train():
                 print("episode: {}/{}, time: {}, score: {:2}, epsilon: {:.4}"
                       .format(e, EPISODES, tt, reward, agent.epsilon))
                 avescore += reward/10
+                #print(state, action, reward, next_state, done)
                 
                 if(not history == None):
                     print('training loss=%f'%history.history['loss'][0])
@@ -143,15 +154,33 @@ def test():
     history = None
     avescore = 0
     tt = 0
-    while True:
-        state,score = nextstate(pongcli)
-        action = agent.act(state)
-        pongcli.execute({'ai':actionlist[action]})
-        tt += 1
-        if(score[0] > 0 or score[1]>0):
-            print("this test work frames(20fps): {}, epsilon: {:.4}".format(tt,agent.epsilon))
-            tt = 0
-        time.sleep(0.05)
+    TEST_TIMES = 100
+    SUCCESS_TIME = 0
+    for i in range(TEST_TIMES):
+        print('test %d'%i)
+        pongcli.reset()
+        lastbalvel = 0
+        while(True):
+            state,score = nextstate(pongcli)
+            action = agent.act(state)
+            pongcli.execute({'ai':actionlist[action]})
+            tt += 1
+            if(lastbalvel<0 and state[0][0]>0):
+                SUCCESS_TIME += 1
+                print('success %d'%SUCCESS_TIME)
+                break
+            if(score[1]>0):
+                print('fail')
+                break
+            lastbalvel = state[0][0]
+            '''
+            if(score[0] > 0 or score[1]>0):
+                print("this test work frames(20fps): {}, epsilon: {:.4}".format(tt,agent.epsilon))
+                tt = 0
+            '''
+            time.sleep(0.05)
+
+    print('total test {} times and {} success pad.'.format(TEST_TIMES, SUCCESS_TIME))
 
 if __name__ == "__main__":    
     if(TRAIN_MODEL):
